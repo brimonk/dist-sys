@@ -6,7 +6,7 @@ LDLIBS=-lm -ljansson
 all: $(PRGS)
 
 %: %.c
-	$(CC) $(CFLAGS) -o ex-$@ $< $(LDLIBS)
+	$(CC) $(CFLAGS) -o $@ $< $(LDLIBS)
 
 clean:
 	rm -f $(PRGS)

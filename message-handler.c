@@ -16,6 +16,8 @@ typedef enum {
     MESSAGE_TYPE_INIT_OK,
     MESSAGE_TYPE_ECHO,
     MESSAGE_TYPE_ECHO_OK,
+    MESSAGE_TYPE_GENERATE,
+    MESSAGE_TYPE_GENERATE_OK,
     MESSAGE_TYPE_TOTAL,
 } MESSAGE_TYPE;
 
@@ -26,6 +28,8 @@ char *MESSAGE_TYPE_TABLE[] = {
     "init_ok",
     "echo",
     "echo_ok",
+    "generate",
+    "generate_ok",
     NULL
 };
 
@@ -73,11 +77,20 @@ typedef struct {
         struct {
             char *echo;
         } echo_ok;
+
+        struct {
+        } generate;
+
+        struct {
+            char *id;
+        } generate_ok;
     } fields;
 } SystemMessage;
 
 static char *node_id = NULL;
 static int64_t msg_id = 0;
+
+static int64_t generate_id = 0;
 
 MESSAGE_TYPE message_type_from_str(char *s)
 {
@@ -133,12 +146,19 @@ SystemMessage *deserialize(char *json)
         }
         case MESSAGE_TYPE_INIT_OK:
             break;
+
         case MESSAGE_TYPE_ECHO:
             m->fields.echo.echo = strdup(json_string_value(json_object_get(body, "echo")));
             break;
         case MESSAGE_TYPE_ECHO_OK:
             m->fields.echo_ok.echo = strdup(json_string_value(json_object_get(body, "echo")));
             break;
+
+        case MESSAGE_TYPE_GENERATE:
+            break;
+        case MESSAGE_TYPE_GENERATE_OK:
+            break;
+
         default:
             fprintf(stderr, "Message type: '%s' (%d) not handled!\n", MESSAGE_TYPE_TABLE[m->type], m->type);
             assert(0);
@@ -155,6 +175,8 @@ SystemMessage *create_response(SystemMessage *request)
 
     response->type = request->type;
 
+    char tmp[128] = {0};
+
     switch (response->type) {
         case MESSAGE_TYPE_INIT:
             response->type = MESSAGE_TYPE_INIT_OK;
@@ -162,12 +184,22 @@ SystemMessage *create_response(SystemMessage *request)
             break;
         case MESSAGE_TYPE_INIT_OK:
             break;
+
         case MESSAGE_TYPE_ECHO:
             response->type = MESSAGE_TYPE_ECHO_OK;
             response->fields.echo_ok.echo = strdup(request->fields.echo.echo);
             break;
         case MESSAGE_TYPE_ECHO_OK:
             break;
+
+        case MESSAGE_TYPE_GENERATE:
+            response->type = MESSAGE_TYPE_GENERATE_OK;
+            snprintf(tmp, sizeof tmp, "%s.%ld", node_id, ++generate_id);
+            response->fields.generate_ok.id = strdup(tmp);
+            break;
+        case MESSAGE_TYPE_GENERATE_OK:
+            break;
+
         default:
             fprintf(stderr, "Message type: '%s' (%d) not handled!\n",
                 MESSAGE_TYPE_TABLE[response->type], response->type);
@@ -205,12 +237,20 @@ char *serialize(SystemMessage *m)
             break;
         case MESSAGE_TYPE_INIT_OK:
             break;
+
         case MESSAGE_TYPE_ECHO:
             json_object_set_new(body, "echo", json_string(m->fields.echo.echo));
             break;
         case MESSAGE_TYPE_ECHO_OK:
             json_object_set_new(body, "echo", json_string(m->fields.echo_ok.echo));
             break;
+
+        case MESSAGE_TYPE_GENERATE:
+            break;
+        case MESSAGE_TYPE_GENERATE_OK:
+            json_object_set_new(body, "id", json_string(m->fields.generate_ok.id));
+            break;
+
         default:
             fprintf(stderr, "Message type: '%s' (%d) not handled!\n",
                 MESSAGE_TYPE_TABLE[m->type], m->type);
@@ -240,12 +280,20 @@ void free_message(SystemMessage *m)
             break;
         case MESSAGE_TYPE_INIT_OK:
             break;
+
         case MESSAGE_TYPE_ECHO_OK:
             free(m->fields.echo_ok.echo);
             break;
         case MESSAGE_TYPE_ECHO:
             free(m->fields.echo.echo);
             break;
+
+        case MESSAGE_TYPE_GENERATE_OK:
+            free(m->fields.generate_ok.id);
+            break;
+        case MESSAGE_TYPE_GENERATE:
+            break;
+
         default:
             fprintf(stderr, "Message type: '%s' (%d) not handled!\n", MESSAGE_TYPE_TABLE[m->type], m->type);
             assert(0);

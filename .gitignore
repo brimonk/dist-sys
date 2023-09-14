@@ -1,5 +1,6 @@
-ex-*
+message-handler
 *.o
 *.d
 maelstrom*
 .gdb*
+store
