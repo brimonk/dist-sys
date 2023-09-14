@@ -1,0 +1,5 @@
+ex-*
+*.o
+*.d
+maelstrom*
+.gdb*
