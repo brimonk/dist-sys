@@ -1,1 +1,4 @@
-{"src":"c1","dest":"n1","body":{"type":"echo","msg_id":1,"echo":"Please echo 35"}}
+{"id":0,"src":"c0","dest":"n0","body":{"type":"init","node_id":"n0","node_ids":["n0"],"msg_id":1}}
+{"src":"c0","dest":"n0","body":{"type":"echo","msg_id":1,"echo":"Line 1"}}
+{"src":"c0","dest":"n0","body":{"type":"echo","msg_id":2,"echo":"Line 2"}}
+{"src":"c0","dest":"n0","body":{"type":"echo","msg_id":3,"echo":"Line 3"}}
